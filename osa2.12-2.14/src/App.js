@@ -1,6 +1,38 @@
 import { useState, useEffect} from 'react'
 import axios from 'axios'
+const api_key = process.env.REACT_APP_API_KEY
 
+const Weather = ({country}) => {
+  console.log('calling weather component')
+  const [location, setLocation] = useState({lat: 0, lon: 0})
+  const [weather, setWeather] = useState({temp: 0, wind: 0})
+
+  useEffect(() =>{
+    axios.get(`http://api.openweathermap.org/geo/1.0/direct?q=${country.capital}&limit=1&appid=${api_key}`).then(response => {
+      setLocation({lat: response.data[0].lat, lon: response.data[0].lon})
+      console.log(location)
+    })
+  }, [country.capital])
+
+  useEffect(() => {
+    axios.get(`https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${api_key}&units=metric`).then(response => {
+      setWeather({temp: response.data.main.temp, wind: response.data.wind.speed})
+      console.log(weather)
+    })
+  }, [location])
+
+  return (
+    <div>
+      temperature {weather.temp} celsius
+      <br/>
+      icon here
+      <br/>
+      wind {weather.wind} m/s
+    </div>
+  )
+
+
+}
 const Show = ({country}) => {
   return (
     <div>
@@ -12,7 +44,8 @@ const Show = ({country}) => {
       <Languages country={country}/>
       <br></br>
       <img src={country.flags['png']} alt='Flag of the country'/>
-      <h2>Weather in {country.name['common']}</h2>
+      <h2>Weather in capital {country.capital}</h2>
+      <Weather country={country}/>
     </div>
   )
 }
