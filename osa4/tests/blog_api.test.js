@@ -1,30 +1,22 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const helper = require('./test_helper')
+const jwt = require('jsonwebtoken')
 const app = require('../app')
 const api = supertest(app)
+const User = require('../models/user')
 const Blog = require('../models/blog')
-
-const initialBlogs = [
-  {
-    title: 'Testblog',
-    author: 'Kaarle Koodari',
-    url: 'www.yle.fi',
-    likes: 42069
-  },
-  {
-    title: 'AutoJopo',
-    author: 'Hullu Pyöräilijä',
-    url: 'www.pyörät.fi',
-    likes: 1
-  }
-]
 
 beforeEach(async () => {
   await Blog.deleteMany({})
-  let blogObject = new Blog(initialBlogs[0])
-  await blogObject.save()
-  blogObject = new Blog(initialBlogs[1])
-  await blogObject.save()
+  await User.deleteMany({})
+  await User.insertMany(helper.initialUsers)
+  for (let blog of helper.initialBlogs) {
+    const user = await User.findOne({name: blog.author})
+    blog.user = user.id
+    let blogObject = new Blog(blog)
+    await blogObject.save()
+  }
 })
 
 test('blogs are returned as json', async () => {
@@ -36,14 +28,14 @@ test('blogs are returned as json', async () => {
 test('all blogs are returned', async () => {
   const response = await api.get('/api/blogs')
 
-  expect(response.body).toHaveLength(initialBlogs.length)
+  expect(response.body).toHaveLength(helper.initialBlogs.length)
 })
 
 test('A blog is within the returned blogs', async () => {
   const response = await api.get('/api/blogs')
   const titles = response.body.map(blog => blog.title)
 
-  expect(titles).toContain('AutoJopo')
+  expect(titles).toContain('CyberCities')
 })
 
 test('A blog has the attribute id and not _id', async () => {
@@ -54,16 +46,21 @@ test('A blog has the attribute id and not _id', async () => {
 })
 
 test('A blog is added to the database', async () => {
-  const initialLength = initialBlogs.length
+  const user = {username: 'AdamS', password: 'cybergonk'}
+  const response = await api.post('/api/login').set('Content-Type', 'application/json').send(user)
+  const token = response.body.token
+  const decodedUser = jwt.decode(token)
+  const initialLength = helper.initialBlogs.length
   const newBlog = {
-    title: 'A new blog',
-    author: 'Kaarle Testaaja',
-    url: 'www.apitesterit.fi',
-    likes: 1000
+    title: 'I smashed some goons',
+    author: 'Adam Smasher',
+    url: 'www.cybergoons.nc',
+    likes: 1000,
+    userId: decodedUser.id
   }
-  await api.post('/api/blogs').set('Content-Type', 'application/json').send(newBlog)
-  const response = await api.get('/api/blogs')
-  expect(response.body).toHaveLength(initialLength+1)
+  await api.post('/api/blogs').set({'Content-Type':'application/json', 'Authorization': `bearer ${token}`}).send(newBlog)
+  const finalBlogs = await helper.blogsInDb()
+  expect(finalBlogs).toHaveLength(initialLength+1)
 })
 
 test('A like attribute of a blog is 0 if likes attribute is not given', async () => {
@@ -76,31 +73,38 @@ test('A like attribute of a blog is 0 if likes attribute is not given', async ()
 })
 
 test('A request with a body without attributes title and url will reply with a status code 400', async () => {
+  const user = {username: 'AdamS', password: 'cybergonk'}
+  const login = await api.post('/api/login').set('Content-Type', 'application/json').send(user)
+  const token = login.body.token
   const faultyBlog = {
     author: 'Kaarle HuonoKoodari',
   }
-  const response = await api.post('/api/blogs').set('Content-Type', 'application/json').send(faultyBlog)
+  const response = await api.post('/api/blogs').set({'Content-Type':'application/json', 'Authorization': `bearer ${token}`}).send(faultyBlog)
   expect(response.status).toBe(400)
 })
 
 
 test('A blog can be deleted', async () => {
-  const response = await api.get('/api/blogs')
-  const initialLength = response.body.length
-  const targetId = response.body[0].id
-  const newResponse = await api.delete(`/api/blogs/${targetId}`)
-  const finalResponse = await api.get('/api/blogs')
-
-  expect(finalResponse.body).toHaveLength(initialLength-1)
+  const user = {username: 'AdamS', password: 'cybergonk'}
+  const response = await api.post('/api/login').set('Content-Type', 'application/json').send(user)
+  const token = response.body.token
+  const initialData = await helper.blogsInDb()
+  const targetId = initialData[1].id
+  const newResponse = await api.delete(`/api/blogs/${targetId}`).set('Authorization', `bearer ${token}`)
+  const finalResponse = await helper.blogsInDb()
+  expect(finalResponse).toHaveLength(initialData.length-1)
   expect(newResponse.status).toBe(204)
 })
 
 test('A blog can be updated', async () => {
-  const initialLikes = initialBlogs[0].likes
-  const initialData = await api.get('/api/blogs')
-  const initialBlogId = initialData.body[0].id
-  const newBlog = {...initialBlogs[0], likes: initialLikes+1}
-  const updatedBlog = await api.put(`/api/blogs/${initialBlogId}`).set('Content-Type', 'application/json').send(newBlog)
+  const user = {username: 'AdamS', password: 'cybergonk'}
+  const response = await api.post('/api/login').set('Content-Type', 'application/json').send(user)
+  const token = response.body.token
+  const initialData = await helper.blogsInDb()
+  const initialLikes = initialData[1].likes
+  const targetId = initialData[1].id
+  const newBlog = {...initialData[0], likes: initialLikes+1}
+  const updatedBlog = await api.put(`/api/blogs/${targetId}`).set({'Content-Type':'application/json', 'Authorization': `bearer ${token}`}).send(newBlog)
   expect(updatedBlog.body.likes).toBe(initialLikes+1)
 
 })
