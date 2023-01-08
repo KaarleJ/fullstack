@@ -1,12 +1,12 @@
-# fly.toml file generated for fsblog on 2022-12-26T16:51:06+02:00
+# fly.toml file generated for fsblogs on 2023-01-08T11:40:37+02:00
 
-app = "fsblog"
+app = "fsblogs"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
 
 [env]
-  PORT = "8080"
+  PORT ="8080"
 
 [experimental]
   allowed_public_ports = []

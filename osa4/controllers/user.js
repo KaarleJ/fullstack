@@ -5,7 +5,7 @@ require('express-async-errors')
 
 usersRouter.post('/', async (request, response) => {
   const {username, name, password} = request.body
-
+  
   if (!(username) || !(name) || !(password)) {
     return response.status(400).json({
       error: 'missing credential'
@@ -30,7 +30,7 @@ usersRouter.post('/', async (request, response) => {
   const user = new User({
     username,
     name,
-    passwordHash,  
+    password: passwordHash,  
   })
 
   const savedUser = await user.save()

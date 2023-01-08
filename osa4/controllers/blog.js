@@ -26,7 +26,7 @@ blogRouter.post('/', async (request, response) => {
   }
 
   const user = await User.findById(body.userId)
-
+  
   if (!request.body.title && !request.body.url) {
     response.status(400).end()
   }
@@ -35,7 +35,7 @@ blogRouter.post('/', async (request, response) => {
     author: body.author,
     url: body.url,
     likes: body.likes,
-    user: user._id
+    user: user.id
   })
   const savedBlog = await blog.save()
   user.blogs = user.blogs.concat(savedBlog._id)
@@ -47,6 +47,8 @@ blogRouter.delete('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id)
   const user = blog.user.toString()
   const claims = jwt.decode(request.token)
+
+  console.log(claims.id, user)
 
   if (claims.id !== user) {
     return (
