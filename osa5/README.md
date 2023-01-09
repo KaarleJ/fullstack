@@ -1,1 +1,3 @@
-# Hakemistossa osan 5 mukainen blogi ohjelma
+# Osa 5
+Hakemistossa blogiohjelma.
+Linkki sovellukseen 'https://fsblogs.fly.dev/'
