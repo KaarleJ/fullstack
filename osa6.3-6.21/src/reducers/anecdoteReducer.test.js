@@ -34,13 +34,11 @@ const initialState = [
 ]
 
 describe('anecdoteReducer', () => {
-  test('an anecdote can be liked', () => {
+  test('an anecdote can be voted', () => {
     const state = initialState
     const action = {
-      type: 'VOTE',
-      data: {
-        id: 3515315135
-      }
+      type: 'anecdotes/voteAnecdote',
+      payload: 3515315135
     }
 
     deepFreeze(state)
@@ -52,10 +50,8 @@ describe('anecdoteReducer', () => {
   test('an anecdote can be created', () => {
     const state = initialState
     const action = {
-      type: 'CREATE',
-      data: {
-        content: 'This is a test anecdote'
-      }
+      type: 'anecdotes/newAnecdote',
+      payload: 'This is a test anecdote'
     }
 
     deepFreeze(state)
