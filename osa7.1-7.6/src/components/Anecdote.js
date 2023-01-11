@@ -9,6 +9,7 @@ const Anecdote = ({ anecdotes }) => {
     <div>
       <h2>{anecdote.content} by {anecdote.author}</h2>
       has {anecdote.votes} votes
+      <p>For more info see <a href={anecdote.info}>{anecdote.info}</a></p>
     </div>
   )
 }
