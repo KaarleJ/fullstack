@@ -1,0 +1,11 @@
+POST http://localhost:3003/api/blogs/
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkFkYW1TIiwiaWQiOiI2M2IyZWUzNTg0MjRhMWJkMTU3NjI2NjQiLCJpYXQiOjE2NzI2NzI1NTN9.L585tm-Mj4felwZA4z1QsxzOrSk74Mvfkct4buX0bBM
+
+{
+    "title": "CyberBlog",
+    "author": "Adam Smasher",
+    "url": "www.cybergonks.nc",
+    "likes": 420,
+    "userId": "63b2ee358424a1bd15762664"
+}
