@@ -1,2 +1,2 @@
 # fullstack
- GIT repository for fullstack
+Submission repository for the fullstack open studies.
